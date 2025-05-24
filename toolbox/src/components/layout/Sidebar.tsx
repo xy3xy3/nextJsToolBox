@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  FileText, 
-  Code, 
-  Eye, 
+import {
+  FileText,
+  Code,
+  Eye,
   GitBranch,
   Home,
   Menu,
@@ -31,7 +31,7 @@ const tools = [
     href: '/html',
     icon: Code,
     description: 'HTML 代码预览',
-    disabled: true
+    disabled: false
   },
   {
     name: 'Mermaid 图表',
@@ -104,8 +104,8 @@ export default function Sidebar() {
                   className={`
                     flex items-center px-3 py-2 rounded-lg text-sm font-medium
                     transition-colors duration-200
-                    ${isDisabled 
-                      ? 'text-gray-400 cursor-not-allowed bg-gray-50' 
+                    ${isDisabled
+                      ? 'text-gray-400 cursor-not-allowed bg-gray-50'
                       : isActive
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
                         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'

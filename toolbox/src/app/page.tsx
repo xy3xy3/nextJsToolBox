@@ -24,7 +24,7 @@ const tools = [
     href: '/html',
     icon: Code,
     color: 'bg-orange-500',
-    available: false
+    available: true
   },
   {
     name: 'Mermaid 图表',

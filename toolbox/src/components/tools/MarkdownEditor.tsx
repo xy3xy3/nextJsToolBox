@@ -1,19 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { Download, Upload, Copy, RotateCcw, Zap, ZapOff } from 'lucide-react'
-
-// 防抖函数 - 专门用于字符串输入
-function debounceString(
-  func: (value: string) => void,
-  wait: number
-): (value: string) => void {
-  let timeout: NodeJS.Timeout | null = null
-  return (value: string) => {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func(value), wait)
-  }
-}
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { Download, Upload, Copy, RotateCcw, Zap } from 'lucide-react'
 
 interface MarkdownEditorProps {
   initialValue?: string
@@ -26,29 +14,26 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
   const [content, setContent] = useState(initialValue)
   const [isMounted, setIsMounted] = useState(false)
 
-  // 性能监控状态
-  const [performanceMode, setPerformanceMode] = useState<'normal' | 'high'>(
-    initialValue.length > 10000 ? 'high' : 'normal'
-  )
-
   // 确保组件已挂载
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // 优化的内容更新函数
-  const updateContent = useCallback((value: string) => {
-    const debouncedUpdate = debounceString((val: string) => {
-      setContent(val)
-      // 根据内容长度动态调整性能模式
-      const newMode = val.length > 10000 ? 'high' : 'normal'
-      if (newMode !== performanceMode) {
-        setPerformanceMode(newMode)
-      }
-    }, performanceMode === 'high' ? 300 : 150)
+  // 创建稳定的防抖函数 - 避免重复创建导致的性能问题
+  const debouncedSetContent = useMemo(() => {
+    let timeout: NodeJS.Timeout | null = null
+    return (value: string) => {
+      if (timeout) clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        setContent(value)
+      }, 500) // 增加到 500ms 防抖延迟，减少频繁更新
+    }
+  }, [])
 
-    debouncedUpdate(value)
-  }, [performanceMode])
+  // 优化的内容更新函数 - 使用稳定的防抖函数
+  const updateContent = useCallback((value: string) => {
+    debouncedSetContent(value)
+  }, [debouncedSetContent])
 
   useEffect(() => {
     if (!isMounted) return
@@ -78,13 +63,29 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
                 style: 'github',
                 lineNumber: false // 关闭行号显示，提升性能
               },
-              // 延迟渲染预览，减少实时计算
-              delay: 300, // 300ms 延迟渲染
+              // 大幅增加延迟渲染时间，减少频繁重绘
+              delay: 100, // 延迟渲染
               maxWidth: 800,
               // 数学公式渲染优化
               math: {
                 inlineDigit: false,
                 macros: {}
+              },
+              // 添加预览区域稳定性配置
+              mode: 'both', // 确保预览模式稳定
+              // 禁用一些可能导致闪动的功能
+              markdown: {
+                autoSpace: false, // 关闭自动空格，减少重排
+                gfmAutoLink: false, // 关闭自动链接，减少重排
+                fixTermTypo: false, // 关闭错别字修正，减少重排
+                footnotes: false, // 关闭脚注，减少重排
+                toc: false, // 关闭目录，减少重排
+                codeBlockPreview: false, // 关闭代码块预览，减少重排
+                mathBlockPreview: false, // 关闭数学块预览，减少重排
+                paragraphBeginningSpace: false, // 关闭段落开头空格，减少重排
+                sanitize: false, // 关闭内容清理，减少重排
+                linkBase: '', // 清空链接基础路径，减少重排
+                linkPrefix: '' // 清空链接前缀，减少重排
               }
             },
             // 编辑器性能优化
@@ -137,19 +138,34 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
               max: 10 * 1024 * 1024, // 10MB
               url: '', // 禁用上传
             },
-            value: content,
+            value: initialValue, // 使用初始值，避免依赖 content 状态
             // 使用优化的输入处理
             input: updateContent,
             after: () => {
               setIsLoading(false)
               // 编辑器加载完成后的性能优化
               if (vditorInstance.current && typeof vditorInstance.current === 'object') {
-                const editor = vditorInstance.current as { vditor?: { element?: HTMLElement } }
+                const editor = vditorInstance.current as {
+                  vditor?: {
+                    element?: HTMLElement,
+                    preview?: { element?: HTMLElement }
+                  }
+                }
                 // 禁用一些可能影响性能的功能
                 if (editor.vditor?.element) {
                   const element = editor.vditor.element
                   // 优化滚动性能
                   element.style.willChange = 'scroll-position'
+
+                  // 优化预览区域性能
+                  if (editor.vditor.preview?.element) {
+                    const previewElement = editor.vditor.preview.element
+                    // 添加 CSS 优化，减少重绘和重排
+                    previewElement.style.willChange = 'contents'
+                    previewElement.style.contain = 'layout style paint'
+                    previewElement.style.transform = 'translateZ(0)' // 启用硬件加速
+                    previewElement.style.backfaceVisibility = 'hidden' // 减少重绘
+                  }
                 }
               }
             }
@@ -169,7 +185,7 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
         vditorInstance.current = null
       }
     }
-  }, [isMounted, updateContent, content])
+  }, [isMounted, updateContent]) // 移除 content 依赖，避免重复初始化
 
   // 导出 Markdown 文件
   const exportMarkdown = () => {
@@ -227,11 +243,7 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
     }
   }
 
-  // 切换性能模式
-  const togglePerformanceMode = () => {
-    const newMode = performanceMode === 'normal' ? 'high' : 'normal'
-    setPerformanceMode(newMode)
-  }
+
 
   // 如果组件还没有挂载，显示加载状态
   if (!isMounted) {
@@ -260,19 +272,6 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
           Markdown 编辑器
         </h2>
         <div className="flex items-center space-x-2">
-          {/* 性能模式指示器 */}
-          <button
-            onClick={togglePerformanceMode}
-            className={`flex items-center px-3 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 ${
-              performanceMode === 'high'
-                ? 'text-orange-700 bg-orange-50 border border-orange-300 hover:bg-orange-100 focus:ring-orange-500'
-                : 'text-green-700 bg-green-50 border border-green-300 hover:bg-green-100 focus:ring-green-500'
-            }`}
-            title={`当前: ${performanceMode === 'high' ? '高性能模式' : '普通模式'} (点击切换)`}
-          >
-            {performanceMode === 'high' ? <Zap size={16} className="mr-2" /> : <ZapOff size={16} className="mr-2" />}
-            {performanceMode === 'high' ? '高性能' : '普通'}
-          </button>
 
           <div className="h-6 w-px bg-gray-300" />
 
@@ -318,6 +317,51 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
           </div>
         )}
         <div ref={vditorRef} className="vditor-container" />
+
+        {/* 添加自定义样式来优化预览区域性能 */}
+        <style jsx>{`
+          :global(.vditor-preview) {
+            /* 启用硬件加速和优化重绘 */
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: contents;
+            contain: layout style paint;
+
+            /* 优化滚动性能 */
+            overflow-anchor: none;
+            scroll-behavior: auto;
+
+            /* 减少重排和重绘 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeSpeed;
+          }
+
+          :global(.vditor-preview .vditor-reset) {
+            /* 优化内容区域 */
+            transform: translateZ(0);
+            will-change: auto;
+            contain: layout style;
+          }
+
+          :global(.vditor-preview img) {
+            /* 优化图片渲染 */
+            image-rendering: optimizeSpeed;
+            will-change: auto;
+          }
+
+          :global(.vditor-preview pre) {
+            /* 优化代码块渲染 */
+            contain: layout style;
+            will-change: auto;
+          }
+
+          :global(.vditor-preview table) {
+            /* 优化表格渲染 */
+            table-layout: fixed;
+            contain: layout style;
+          }
+        `}</style>
       </div>
     </div>
   )

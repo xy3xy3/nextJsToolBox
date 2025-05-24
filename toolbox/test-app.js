@@ -5,7 +5,7 @@ function testEndpoint(path, expectedStatus = 200) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'localhost',
-      port: 3000,
+      port: 3001,
       path: path,
       method: 'GET'
     };
@@ -35,7 +35,8 @@ async function runTests() {
 
   const tests = [
     { path: '/', name: '首页' },
-    { path: '/markdown', name: 'Markdown 编辑器页面' }
+    { path: '/markdown', name: 'Markdown 编辑器页面' },
+    { path: '/html', name: 'HTML 编辑器页面' }
   ];
 
   let passedTests = 0;
@@ -51,7 +52,7 @@ async function runTests() {
   }
 
   console.log(`\n📊 测试结果: ${passedTests}/${totalTests} 通过`);
-  
+
   if (passedTests === totalTests) {
     console.log('🎉 所有测试通过！应用运行正常。');
   } else {
@@ -60,5 +61,5 @@ async function runTests() {
 }
 
 // 检查服务器是否运行
-console.log('检查开发服务器是否在 http://localhost:3000 运行...');
+console.log('检查开发服务器是否在 http://localhost:3001 运行...');
 runTests().catch(console.error);
