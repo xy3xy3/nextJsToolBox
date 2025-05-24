@@ -67,11 +67,8 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
 
         setMermaidInstance(mermaid)
 
-        console.log('Mermaid 初始化完成')
-
         // 初始渲染
         if (code.trim()) {
-          console.log('开始初始渲染，代码:', code)
           setTimeout(() => renderMermaid(code), 100) // 延迟一点确保状态更新
         }
       } catch (error) {
@@ -104,15 +101,10 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
       // 生成唯一 ID
       const id = `mermaid-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
 
-      console.log('开始渲染 Mermaid:', { id, code: mermaidCode })
-
       // 验证和渲染图表
       const renderResult = await mermaidInstance.render(id, mermaidCode)
-      console.log('Mermaid 渲染结果:', renderResult)
 
       if (previewRef.current && renderResult) {
-        console.log('渲染结果详情:', renderResult)
-
         // 检查不同的可能属性
         let svgContent = renderResult.svg || renderResult.innerHTML || renderResult
 
@@ -120,17 +112,9 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
           // 直接插入 SVG 内容
           previewRef.current.innerHTML = svgContent
 
-          console.log('SVG 已插入到预览区域，内容长度:', svgContent.length)
-
           // 添加样式优化
           const svgElement = previewRef.current.querySelector('svg')
           if (svgElement) {
-            console.log('找到 SVG 元素，尺寸:', {
-              width: svgElement.getAttribute('width'),
-              height: svgElement.getAttribute('height'),
-              viewBox: svgElement.getAttribute('viewBox')
-            })
-
             svgElement.style.maxWidth = '100%'
             svgElement.style.height = 'auto'
             svgElement.style.display = 'block'
@@ -147,15 +131,11 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
             if (!svgElement.getAttribute('height')) {
               svgElement.setAttribute('height', 'auto')
             }
-          } else {
-            console.error('未找到 SVG 元素，预览区域内容:', previewRef.current.innerHTML)
           }
         } else {
-          console.error('渲染结果不包含有效的 SVG:', renderResult)
           throw new Error('渲染结果不包含有效的 SVG 内容')
         }
       } else {
-        console.error('渲染结果无效或预览区域不存在:', { renderResult, previewRef: previewRef.current })
         throw new Error('渲染结果为空或预览区域不存在')
       }
     } catch (error: any) {
@@ -306,7 +286,6 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
           console.error('Canvas drawing failed:', error)
           // 如果还是失败，尝试使用 html2canvas 库的方法
           try {
-            console.log('尝试使用 html2canvas 导出')
             const html2canvas = await import('html2canvas')
             const canvas = await html2canvas.default(previewRef.current!, {
               backgroundColor: 'white',
@@ -426,41 +405,6 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
               </div>
             )}
           </div>
-
-          <div className="h-6 w-px bg-gray-300" />
-
-          {/* 测试按钮 */}
-          <button
-            onClick={() => {
-              console.log('手动触发渲染测试')
-              console.log('当前代码:', code)
-              console.log('Mermaid 实例:', mermaidInstance)
-              console.log('预览区域:', previewRef.current)
-              if (code.trim()) {
-                renderMermaid(code)
-              }
-            }}
-            className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            🔄 测试渲染
-          </button>
-
-          <button
-            onClick={() => {
-              if (previewRef.current) {
-                previewRef.current.innerHTML = `
-                  <svg width="200" height="100" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="200" height="100" fill="lightblue" stroke="blue" stroke-width="2"/>
-                    <text x="100" y="50" text-anchor="middle" dominant-baseline="middle" fill="black">测试 SVG</text>
-                  </svg>
-                `
-                console.log('插入测试 SVG')
-              }
-            }}
-            className="flex items-center px-3 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-300 rounded-md hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            📊 测试 SVG
-          </button>
 
           <div className="h-6 w-px bg-gray-300" />
 
@@ -715,8 +659,8 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
         +getInfo()
     }
 
-    User ||--o{ Order : places
-    Order ||--o{ Product : contains`
+    User "1" --> "0..*" Order : places
+    Order "1" --> "1..*" Product : contains`
               setCode(template)
               handleCodeChange(template)
             }}
