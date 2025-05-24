@@ -32,7 +32,7 @@ const tools = [
     href: '/mermaid',
     icon: GitBranch,
     color: 'bg-green-500',
-    available: false
+    available: true
   },
   {
     name: 'Graphviz 图表',

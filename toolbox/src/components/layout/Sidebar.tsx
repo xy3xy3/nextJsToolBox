@@ -38,7 +38,7 @@ const tools = [
     href: '/mermaid',
     icon: GitBranch,
     description: 'Mermaid 流程图编辑',
-    disabled: true
+    disabled: false
   },
   {
     name: 'Graphviz 图表',
