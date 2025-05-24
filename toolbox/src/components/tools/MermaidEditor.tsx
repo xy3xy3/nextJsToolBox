@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Download, Upload, Copy, RotateCcw, Image, FileImage, AlertCircle, CheckCircle } from 'lucide-react'
 
 interface MermaidEditorProps {
@@ -15,16 +15,8 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
   const [isLoading, setIsLoading] = useState(false)
   const [mermaidInstance, setMermaidInstance] = useState<any>(null)
 
-  // 创建稳定的防抖函数
-  const debouncedRender = useMemo(() => {
-    let timeout: NodeJS.Timeout | null = null
-    return (value: string) => {
-      if (timeout) clearTimeout(timeout)
-      timeout = setTimeout(() => {
-        renderMermaid(value)
-      }, 500) // 500ms 防抖延迟
-    }
-  }, [])
+  // 防抖渲染的 ref
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // 初始化 Mermaid
   useEffect(() => {
@@ -66,11 +58,6 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
         })
 
         setMermaidInstance(mermaid)
-
-        // 初始渲染
-        if (code.trim()) {
-          setTimeout(() => renderMermaid(code), 100) // 延迟一点确保状态更新
-        }
       } catch (error) {
         console.error('Failed to load Mermaid:', error)
         setError('加载 Mermaid 失败，请刷新页面重试')
@@ -129,7 +116,9 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
               svgElement.setAttribute('width', '100%')
             }
             if (!svgElement.getAttribute('height')) {
-              svgElement.setAttribute('height', 'auto')
+              // 获取实际高度或设置默认值
+              const actualHeight = svgElement.getBBox().height || 400
+              svgElement.setAttribute('height', actualHeight.toString())
             }
           }
         } else {
@@ -182,11 +171,33 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
     }
   }, [mermaidInstance])
 
+  // 初始渲染 - 当 mermaidInstance 和 code 都准备好时
+  useEffect(() => {
+    if (mermaidInstance && code.trim()) {
+      // 延迟一点确保组件完全挂载
+      const timer = setTimeout(() => {
+        renderMermaid(code)
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }
+  }, [mermaidInstance, renderMermaid]) // 只依赖 mermaidInstance，避免 code 变化时重复渲染
+
   // 处理代码变化
   const handleCodeChange = useCallback((value: string) => {
     setCode(value)
-    debouncedRender(value)
-  }, [debouncedRender])
+
+    // 防抖渲染
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current)
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (mermaidInstance && value.trim()) {
+        renderMermaid(value)
+      }
+    }, 500)
+  }, [mermaidInstance, renderMermaid])
 
   // 导出 PNG
   const exportPNG = useCallback(async () => {
@@ -435,34 +446,6 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
               </div>
             )}
           </div>
-
-          <div className="h-6 w-px bg-gray-300" />
-
-          {/* 调试按钮 */}
-          <button
-            onClick={() => {
-              console.log('=== 调试信息 ===')
-              console.log('预览区域:', previewRef.current)
-              console.log('预览区域内容:', previewRef.current?.innerHTML)
-              const svg = previewRef.current?.querySelector('svg')
-              if (svg) {
-                console.log('SVG 元素:', svg)
-                console.log('SVG 尺寸:', {
-                  width: svg.getAttribute('width'),
-                  height: svg.getAttribute('height'),
-                  viewBox: svg.getAttribute('viewBox'),
-                  clientWidth: svg.clientWidth,
-                  clientHeight: svg.clientHeight
-                })
-                console.log('SVG bbox:', svg.getBBox())
-              } else {
-                console.log('未找到 SVG 元素')
-              }
-            }}
-            className="flex items-center px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-300 rounded-md hover:bg-purple-100"
-          >
-            🔍 调试
-          </button>
 
           <div className="h-6 w-px bg-gray-300" />
 
