@@ -204,8 +204,23 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
 
       // 获取 SVG 的实际尺寸
       const bbox = svgElement.getBBox()
-      const width = bbox.width || svgElement.clientWidth || 800
-      const height = bbox.height || svgElement.clientHeight || 600
+      const svgRect = svgElement.getBoundingClientRect()
+
+      // 使用更保守的尺寸计算，添加一些边距以确保完整性
+      const padding = 20 // 添加边距
+      const width = Math.max(
+        bbox.width + padding * 2,
+        svgRect.width + padding * 2,
+        svgElement.clientWidth + padding * 2,
+        800
+      )
+
+      const height = Math.max(
+        bbox.height + padding * 2,
+        svgRect.height + padding * 2,
+        svgElement.clientHeight + padding * 2,
+        600
+      )
 
       // 设置 SVG 的 viewBox 和尺寸属性
       clonedSvg.setAttribute('width', width.toString())
@@ -337,8 +352,23 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
 
       // 获取 SVG 的实际尺寸
       const bbox = svgElement.getBBox()
-      const width = bbox.width || svgElement.clientWidth || 800
-      const height = bbox.height || svgElement.clientHeight || 600
+      const svgRect = svgElement.getBoundingClientRect()
+
+      // 使用更保守的尺寸计算，添加一些边距以确保完整性
+      const padding = 20 // 添加边距
+      const width = Math.max(
+        bbox.width + padding * 2,
+        svgRect.width + padding * 2,
+        svgElement.clientWidth + padding * 2,
+        800
+      )
+
+      const height = Math.max(
+        bbox.height + padding * 2,
+        svgRect.height + padding * 2,
+        svgElement.clientHeight + padding * 2,
+        600
+      )
 
       // 设置 SVG 的属性以确保独立性
       clonedSvg.setAttribute('width', width.toString())
@@ -405,6 +435,34 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
               </div>
             )}
           </div>
+
+          <div className="h-6 w-px bg-gray-300" />
+
+          {/* 调试按钮 */}
+          <button
+            onClick={() => {
+              console.log('=== 调试信息 ===')
+              console.log('预览区域:', previewRef.current)
+              console.log('预览区域内容:', previewRef.current?.innerHTML)
+              const svg = previewRef.current?.querySelector('svg')
+              if (svg) {
+                console.log('SVG 元素:', svg)
+                console.log('SVG 尺寸:', {
+                  width: svg.getAttribute('width'),
+                  height: svg.getAttribute('height'),
+                  viewBox: svg.getAttribute('viewBox'),
+                  clientWidth: svg.clientWidth,
+                  clientHeight: svg.clientHeight
+                })
+                console.log('SVG bbox:', svg.getBBox())
+              } else {
+                console.log('未找到 SVG 元素')
+              }
+            }}
+            className="flex items-center px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-300 rounded-md hover:bg-purple-100"
+          >
+            🔍 调试
+          </button>
 
           <div className="h-6 w-px bg-gray-300" />
 
