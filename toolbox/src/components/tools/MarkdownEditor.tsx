@@ -1,17 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Download, Upload, Copy, RotateCcw } from 'lucide-react'
+import { Download, Upload, Copy, RotateCcw, Zap, ZapOff } from 'lucide-react'
 
-// 防抖函数
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
+// 防抖函数 - 专门用于字符串输入
+function debounceString(
+  func: (value: string) => void,
   wait: number
-): (...args: Parameters<T>) => void {
+): (value: string) => void {
   let timeout: NodeJS.Timeout | null = null
-  return (...args: Parameters<T>) => {
+  return (value: string) => {
     if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
+    timeout = setTimeout(() => func(value), wait)
   }
 }
 
@@ -37,17 +37,18 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
   }, [])
 
   // 优化的内容更新函数
-  const updateContent = useCallback(
-    debounce((value: string) => {
-      setContent(value)
+  const updateContent = useCallback((value: string) => {
+    const debouncedUpdate = debounceString((val: string) => {
+      setContent(val)
       // 根据内容长度动态调整性能模式
-      const newMode = value.length > 10000 ? 'high' : 'normal'
+      const newMode = val.length > 10000 ? 'high' : 'normal'
       if (newMode !== performanceMode) {
         setPerformanceMode(newMode)
       }
-    }, performanceMode === 'high' ? 300 : 150),
-    [performanceMode]
-  )
+    }, performanceMode === 'high' ? 300 : 150)
+
+    debouncedUpdate(value)
+  }, [performanceMode])
 
   useEffect(() => {
     if (!isMounted) return
@@ -143,7 +144,7 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
               setIsLoading(false)
               // 编辑器加载完成后的性能优化
               if (vditorInstance.current && typeof vditorInstance.current === 'object') {
-                const editor = vditorInstance.current as any
+                const editor = vditorInstance.current as { vditor?: { element?: HTMLElement } }
                 // 禁用一些可能影响性能的功能
                 if (editor.vditor?.element) {
                   const element = editor.vditor.element
@@ -168,7 +169,7 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
         vditorInstance.current = null
       }
     }
-  }, [isMounted, updateContent])
+  }, [isMounted, updateContent, content])
 
   // 导出 Markdown 文件
   const exportMarkdown = () => {
@@ -226,6 +227,12 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
     }
   }
 
+  // 切换性能模式
+  const togglePerformanceMode = () => {
+    const newMode = performanceMode === 'normal' ? 'high' : 'normal'
+    setPerformanceMode(newMode)
+  }
+
   // 如果组件还没有挂载，显示加载状态
   if (!isMounted) {
     return (
@@ -253,6 +260,22 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
           Markdown 编辑器
         </h2>
         <div className="flex items-center space-x-2">
+          {/* 性能模式指示器 */}
+          <button
+            onClick={togglePerformanceMode}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 ${
+              performanceMode === 'high'
+                ? 'text-orange-700 bg-orange-50 border border-orange-300 hover:bg-orange-100 focus:ring-orange-500'
+                : 'text-green-700 bg-green-50 border border-green-300 hover:bg-green-100 focus:ring-green-500'
+            }`}
+            title={`当前: ${performanceMode === 'high' ? '高性能模式' : '普通模式'} (点击切换)`}
+          >
+            {performanceMode === 'high' ? <Zap size={16} className="mr-2" /> : <ZapOff size={16} className="mr-2" />}
+            {performanceMode === 'high' ? '高性能' : '普通'}
+          </button>
+
+          <div className="h-6 w-px bg-gray-300" />
+
           <button
             onClick={importMarkdown}
             className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
