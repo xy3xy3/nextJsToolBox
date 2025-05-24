@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hpcc-js/wasm": "^2.22.4",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.511.0",
     "mermaid": "^11.6.0",

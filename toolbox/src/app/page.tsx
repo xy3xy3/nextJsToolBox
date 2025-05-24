@@ -40,7 +40,7 @@ const tools = [
     href: '/graphviz',
     icon: Eye,
     color: 'bg-purple-500',
-    available: false
+    available: true
   }
 ]
 

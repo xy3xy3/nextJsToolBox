@@ -45,7 +45,7 @@ const tools = [
     href: '/graphviz',
     icon: Eye,
     description: 'Graphviz 图表编辑',
-    disabled: true
+    disabled: false
   }
 ]
 
