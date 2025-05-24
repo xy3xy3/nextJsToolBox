@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Upload, FileText, Image, Package, AlertCircle, CheckCircle } from 'lucide-react'
 import mammoth from 'mammoth'
 import JSZip from 'jszip'
@@ -36,7 +36,7 @@ export default function WordToMarkdownEditor({ initialValue = '' }: WordToMarkdo
   }, [conversionResult])
 
   // 配置Turndown服务，用于HTML到Markdown的转换
-  const turndownService = new TurndownService({
+  const turndownService = useMemo(() => new TurndownService({
     headingStyle: 'atx',
     hr: '---',
     bulletListMarker: '-',
@@ -46,12 +46,12 @@ export default function WordToMarkdownEditor({ initialValue = '' }: WordToMarkdo
     strongDelimiter: '**',
     linkStyle: 'inlined',
     linkReferenceStyle: 'full'
-  })
+  }), [])
 
   // 添加自定义规则来处理图片和段落的格式
   turndownService.addRule('cleanImages', {
     filter: 'img',
-    replacement: function (content, node) {
+    replacement: function (_content, node) {
       const element = node as HTMLImageElement
       const alt = element.getAttribute('alt') || ''
       const src = element.getAttribute('src') || ''
@@ -209,7 +209,7 @@ export default function WordToMarkdownEditor({ initialValue = '' }: WordToMarkdo
     } finally {
       setIsConverting(false)
     }
-  }, [turndownService])
+  }, [turndownService, cleanMarkdownFormat])
 
   // 处理文件选择
   const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -419,7 +419,8 @@ export default function WordToMarkdownEditor({ initialValue = '' }: WordToMarkdo
                       }
                       return (
                         <div key={index} className="my-4">
-                          <img src={actualSrc} alt={alt} className="max-w-full h-auto border rounded" />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={actualSrc} alt={alt || ''} className="max-w-full h-auto border rounded" />
                           {alt && <p className="text-sm text-gray-600 mt-1 italic">{alt}</p>}
                         </div>
                       )

@@ -7,13 +7,17 @@ interface MermaidEditorProps {
   initialValue?: string
 }
 
+interface MermaidInstance {
+  render: (id: string, code: string) => Promise<{ svg: string; innerHTML?: string }>
+}
+
 export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps) {
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const [code, setCode] = useState(initialValue)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [mermaidInstance, setMermaidInstance] = useState<any>(null)
+  const [mermaidInstance, setMermaidInstance] = useState<MermaidInstance | null>(null)
 
   // 防抖渲染的 ref
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -93,7 +97,7 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
 
       if (previewRef.current && renderResult) {
         // 检查不同的可能属性
-        let svgContent = renderResult.svg || renderResult.innerHTML || renderResult
+        const svgContent = renderResult.svg || renderResult.innerHTML || renderResult
 
         if (typeof svgContent === 'string' && svgContent.includes('<svg')) {
           // 直接插入 SVG 内容
@@ -127,14 +131,14 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
       } else {
         throw new Error('渲染结果为空或预览区域不存在')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Mermaid render error:', error)
-      setError(error.message || '图表渲染失败')
+      setError((error as Error).message || '图表渲染失败')
 
       if (previewRef.current) {
         // 更详细的错误信息显示
-        const errorMessage = error.message || '未知错误'
-        const errorDetails = error.stack || error.toString()
+        const errorMessage = (error as Error).message || '未知错误'
+        const errorDetails = (error as Error).stack || (error as Error).toString()
 
         previewRef.current.innerHTML = `
           <div class="text-red-600 p-4 bg-red-50 border border-red-200 rounded-lg max-w-full">
@@ -181,7 +185,7 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
 
       return () => clearTimeout(timer)
     }
-  }, [mermaidInstance, renderMermaid]) // 只依赖 mermaidInstance，避免 code 变化时重复渲染
+  }, [mermaidInstance, renderMermaid, code]) // 添加 code 依赖
 
   // 处理代码变化
   const handleCodeChange = useCallback((value: string) => {

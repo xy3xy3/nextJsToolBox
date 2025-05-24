@@ -7,13 +7,17 @@ interface GraphvizEditorProps {
   initialValue?: string
 }
 
+interface GraphvizInstance {
+  dot: (code: string) => string
+}
+
 export default function GraphvizEditor({ initialValue = '' }: GraphvizEditorProps) {
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const [code, setCode] = useState(initialValue)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [vizInstance, setVizInstance] = useState<any>(null)
+  const [vizInstance, setVizInstance] = useState<GraphvizInstance | null>(null)
 
   // 防抖渲染的 ref
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -92,14 +96,14 @@ export default function GraphvizEditor({ initialValue = '' }: GraphvizEditorProp
       } else {
         throw new Error('渲染结果为空')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Graphviz render error:', error)
-      setError(error.message || '图表渲染失败')
+      setError((error as Error).message || '图表渲染失败')
 
       if (previewRef.current) {
         // 更详细的错误信息显示
-        const errorMessage = error.message || '未知错误'
-        const errorDetails = error.stack || error.toString()
+        const errorMessage = (error as Error).message || '未知错误'
+        const errorDetails = (error as Error).stack || (error as Error).toString()
 
         previewRef.current.innerHTML = `
           <div class="text-red-600 p-4 bg-red-50 border border-red-200 rounded-lg max-w-full">
@@ -146,7 +150,7 @@ export default function GraphvizEditor({ initialValue = '' }: GraphvizEditorProp
 
       return () => clearTimeout(timer)
     }
-  }, [vizInstance, renderGraphviz])
+  }, [vizInstance, renderGraphviz, code])
 
   // 处理代码变化
   const handleCodeChange = useCallback((value: string) => {
@@ -403,7 +407,7 @@ export default function GraphvizEditor({ initialValue = '' }: GraphvizEditorProp
             disabled={!code.trim() || !!error || isLoading}
             className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Image size={16} className="mr-2" />
+            <Image size={16} className="mr-2" aria-label="导出PNG图标" />
             导出 PNG
           </button>
           <button

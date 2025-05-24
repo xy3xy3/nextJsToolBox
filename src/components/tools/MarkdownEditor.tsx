@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import { Download, Upload, Copy, RotateCcw, Zap } from 'lucide-react'
+import { Download, Upload, Copy, RotateCcw } from 'lucide-react'
 
 interface MarkdownEditorProps {
   initialValue?: string
@@ -185,7 +185,7 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
         vditorInstance.current = null
       }
     }
-  }, [isMounted, updateContent]) // 移除 content 依赖，避免重复初始化
+  }, [isMounted, updateContent, initialValue]) // 添加 initialValue 依赖
 
   // 导出 Markdown 文件
   const exportMarkdown = () => {
