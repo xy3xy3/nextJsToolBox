@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileType
 } from 'lucide-react'
 import { useState } from 'react'
 import { useSidebar } from './MainLayout'
@@ -48,6 +49,13 @@ const tools = [
     href: '/graphviz',
     icon: Eye,
     description: 'Graphviz 图表编辑',
+    disabled: false
+  },
+  {
+    name: 'Word 转 Markdown',
+    href: '/word-to-markdown',
+    icon: FileType,
+    description: 'Word文档转Markdown',
     disabled: false
   }
 ]

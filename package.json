@@ -11,11 +11,14 @@
   "dependencies": {
     "@hpcc-js/wasm": "^2.22.4",
     "html2canvas": "^1.4.1",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.511.0",
+    "mammoth": "^1.9.0",
     "mermaid": "^11.6.0",
     "next": "15.1.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "turndown": "^7.2.0",
     "vditor": "^3.11.0"
   },
   "devDependencies": {
@@ -23,6 +26,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/turndown": "^5.0.5",
     "eslint": "^9",
     "eslint-config-next": "15.1.8",
     "postcss": "^8",

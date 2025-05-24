@@ -6,7 +6,8 @@ import {
   GitBranch,
   Zap,
   Palette,
-  Settings
+  Settings,
+  FileType
 } from 'lucide-react'
 
 const tools = [
@@ -40,6 +41,14 @@ const tools = [
     href: '/graphviz',
     icon: Eye,
     color: 'bg-purple-500',
+    available: true
+  },
+  {
+    name: 'Word 转 Markdown',
+    description: '将Word文档转换为Markdown格式，支持图片提取和压缩包下载',
+    href: '/word-to-markdown',
+    icon: FileType,
+    color: 'bg-indigo-500',
     available: true
   }
 ]
