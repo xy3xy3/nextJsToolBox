@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Download, Upload, Copy, RotateCcw, Eye, EyeOff, Code, Monitor, Palette } from 'lucide-react'
+import { Download, Upload, Copy, RotateCcw, Palette } from 'lucide-react'
 
 // 防抖函数
 function debounceString(
@@ -25,8 +25,8 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
   const highlightRef = useRef<HTMLPreElement>(null)
   const [content, setContent] = useState(initialValue)
   const [isMounted, setIsMounted] = useState(false)
-  const [viewMode, setViewMode] = useState<'split' | 'editor' | 'preview'>('split')
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  // 固定为分屏模式，不再支持切换
+  // 删除全屏功能
   const [showLineNumbers, setShowLineNumbers] = useState(true)
   const [fontSize, setFontSize] = useState(14)
 
@@ -150,18 +150,9 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
     }
   }
 
-  // 切换视图模式
-  const toggleViewMode = () => {
-    const modes: Array<'split' | 'editor' | 'preview'> = ['split', 'editor', 'preview']
-    const currentIndex = modes.indexOf(viewMode)
-    const nextIndex = (currentIndex + 1) % modes.length
-    setViewMode(modes[nextIndex])
-  }
+  // 删除视图模式切换功能
 
-  // 切换全屏模式
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen)
-  }
+  // 删除全屏模式切换功能
 
   // 切换行号显示
   const toggleLineNumbers = () => {
@@ -215,33 +206,7 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
     return lines.map((_, index) => index + 1).join('\n')
   }
 
-  // 获取视图模式图标
-  const getViewModeIcon = () => {
-    switch (viewMode) {
-      case 'split':
-        return <Monitor size={16} />
-      case 'editor':
-        return <Code size={16} />
-      case 'preview':
-        return <Eye size={16} />
-      default:
-        return <Monitor size={16} />
-    }
-  }
-
-  // 获取视图模式文本
-  const getViewModeText = () => {
-    switch (viewMode) {
-      case 'split':
-        return '分屏'
-      case 'editor':
-        return '编辑'
-      case 'preview':
-        return '预览'
-      default:
-        return '分屏'
-    }
-  }
+  // 删除视图模式相关函数
 
   if (!isMounted) {
     return (
@@ -262,32 +227,13 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* 工具栏 */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">
           HTML 编辑器
         </h2>
         <div className="flex items-center space-x-2">
-          {/* 视图模式切换 */}
-          <button
-            onClick={toggleViewMode}
-            className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            title={`当前: ${getViewModeText()}模式 (点击切换)`}
-          >
-            {getViewModeIcon()}
-            <span className="ml-2">{getViewModeText()}</span>
-          </button>
-
-          {/* 全屏切换 */}
-          <button
-            onClick={toggleFullscreen}
-            className="flex items-center px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-300 rounded-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            title={isFullscreen ? '退出全屏' : '进入全屏'}
-          >
-            {isFullscreen ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-
           {/* 格式化按钮 */}
           <button
             onClick={formatHtml}
@@ -331,10 +277,9 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
       </div>
 
       {/* 编辑器和预览区域 */}
-      <div className={`flex ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-[calc(100vh-200px)]'}`}>
+      <div className="flex h-[calc(100vh-200px)]">
         {/* 编辑器区域 */}
-        {(viewMode === 'split' || viewMode === 'editor') && (
-          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} border-r border-gray-200 relative`}>
+        <div className="w-1/2 border-r border-gray-200 relative">
             {/* 编辑器工具栏 */}
             <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200">
               <div className="flex items-center space-x-2">
@@ -407,19 +352,16 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
               />
             </div>
           </div>
-        )}
 
         {/* 预览区域 */}
-        {(viewMode === 'split' || viewMode === 'preview') && (
-          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} bg-white`}>
-            <iframe
-              ref={previewRef}
-              className="w-full h-full border-none"
-              title="HTML 预览"
-              sandbox="allow-scripts allow-same-origin"
-            />
-          </div>
-        )}
+        <div className="w-1/2 bg-white">
+          <iframe
+            ref={previewRef}
+            className="w-full h-full border-none"
+            title="HTML 预览"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
       </div>
     </div>
   )
