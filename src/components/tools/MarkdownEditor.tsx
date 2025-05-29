@@ -56,8 +56,7 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
             typewriterMode: false, // 关闭打字机模式，减少滚动计算
             preview: {
               theme: {
-                current: 'light',
-                path: 'https://cdn.jsdelivr.net/npm/vditor@3.11.0/dist/css/content-theme'
+                current: 'light'
               },
               hljs: {
                 style: 'github',
