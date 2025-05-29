@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import { Copy, RotateCcw, Upload, Download, FileText, BarChart3 } from 'lucide-react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { Copy, RotateCcw, Upload, Download, BarChart3 } from 'lucide-react'
 
 interface CharacterCounterProps {
   initialValue?: string
