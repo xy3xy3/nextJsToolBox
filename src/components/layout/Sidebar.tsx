@@ -12,7 +12,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  FileType
+  FileType,
+  Calculator
 } from 'lucide-react'
 import { useState } from 'react'
 import { useSidebar } from './MainLayout'
@@ -56,6 +57,13 @@ const tools = [
     href: '/word-to-markdown',
     icon: FileType,
     description: 'Word文档转Markdown',
+    disabled: false
+  },
+  {
+    name: '字符统计工具',
+    href: '/character-counter',
+    icon: Calculator,
+    description: '文本字符统计分析',
     disabled: false
   }
 ]
