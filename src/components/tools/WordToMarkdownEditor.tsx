@@ -286,18 +286,19 @@ export default function WordToMarkdownEditor({ initialValue = '' }: WordToMarkdo
       />
 
       {/* 顶部工具栏 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-200 bg-white gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <h2 className="text-lg font-semibold text-gray-900">Word 转 Markdown</h2>
 
           {conversionResult && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <CheckCircle size={16} className="text-green-500" />
-              <span>转换完成</span>
+            <div className="flex items-center gap-2 text-xs text-gray-600">
+              <CheckCircle size={14} className="text-green-500" />
+              <span className="hidden sm:inline">转换完成</span>
+              <span className="sm:hidden">完成</span>
               {Object.keys(conversionResult.images).length > 0 && (
                 <>
                   <span>•</span>
-                  <Image size={16} />
+                  <Image size={14} />
                   <span>{Object.keys(conversionResult.images).length} 张图片</span>
                 </>
               )}
@@ -305,32 +306,35 @@ export default function WordToMarkdownEditor({ initialValue = '' }: WordToMarkdo
           )}
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={triggerFileSelect}
             disabled={isConverting}
-            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Upload size={16} className="mr-2" />
-            {isConverting ? '转换中...' : '上传Word文档'}
+            <Upload size={14} className="mr-1" />
+            <span className="hidden sm:inline">{isConverting ? '转换中...' : '上传Word文档'}</span>
+            <span className="sm:hidden">{isConverting ? '转换中' : '上传'}</span>
           </button>
 
           {conversionResult && (
             <>
               <button
                 onClick={copyToClipboard}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <FileText size={16} className="mr-2" />
-                复制Markdown
+                <FileText size={14} className="mr-1" />
+                <span className="hidden sm:inline">复制Markdown</span>
+                <span className="sm:hidden">复制</span>
               </button>
 
               <button
                 onClick={downloadZip}
-                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                <Package size={16} className="mr-2" />
-                下载压缩包
+                <Package size={14} className="mr-1" />
+                <span className="hidden sm:inline">下载压缩包</span>
+                <span className="sm:hidden">下载</span>
               </button>
             </>
           )}

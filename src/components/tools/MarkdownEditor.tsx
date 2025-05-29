@@ -267,41 +267,45 @@ export default function MarkdownEditor({ initialValue = '' }: MarkdownEditorProp
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* 工具栏 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-200 gap-4">
         <h2 className="text-lg font-semibold text-gray-900">
           Markdown 编辑器
         </h2>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
 
-          <div className="h-6 w-px bg-gray-300" />
+          <div className="hidden sm:block h-6 w-px bg-gray-300" />
 
           <button
             onClick={importMarkdown}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Upload size={16} className="mr-2" />
-            导入
+            <Upload size={14} className="mr-1" />
+            <span className="hidden sm:inline">导入</span>
+            <span className="sm:hidden">导入</span>
           </button>
           <button
             onClick={exportMarkdown}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Download size={16} className="mr-2" />
-            导出
+            <Download size={14} className="mr-1" />
+            <span className="hidden sm:inline">导出</span>
+            <span className="sm:hidden">导出</span>
           </button>
           <button
             onClick={copyToClipboard}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Copy size={16} className="mr-2" />
-            复制
+            <Copy size={14} className="mr-1" />
+            <span className="hidden sm:inline">复制</span>
+            <span className="sm:hidden">复制</span>
           </button>
           <button
             onClick={clearContent}
-            className="flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
-            <RotateCcw size={16} className="mr-2" />
-            清空
+            <RotateCcw size={14} className="mr-1" />
+            <span className="hidden sm:inline">清空</span>
+            <span className="sm:hidden">清空</span>
           </button>
         </div>
       </div>

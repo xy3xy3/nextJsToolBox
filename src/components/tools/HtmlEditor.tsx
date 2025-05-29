@@ -229,57 +229,62 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* 工具栏 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-200 gap-4">
         <h2 className="text-lg font-semibold text-gray-900">
           HTML 编辑器
         </h2>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* 格式化按钮 */}
           <button
             onClick={formatHtml}
-            className="flex items-center px-3 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-300 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-300 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             title="格式化 HTML 代码"
           >
-            <Palette size={16} />
+            <Palette size={14} className="mr-1" />
+            <span className="hidden sm:inline">格式化</span>
           </button>
 
-          <div className="h-6 w-px bg-gray-300" />
+          <div className="hidden sm:block h-6 w-px bg-gray-300" />
 
           <button
             onClick={importHtml}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Upload size={16} className="mr-2" />
-            导入
+            <Upload size={14} className="mr-1" />
+            <span className="hidden sm:inline">导入</span>
+            <span className="sm:hidden">导入</span>
           </button>
           <button
             onClick={exportHtml}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Download size={16} className="mr-2" />
-            导出
+            <Download size={14} className="mr-1" />
+            <span className="hidden sm:inline">导出</span>
+            <span className="sm:hidden">导出</span>
           </button>
           <button
             onClick={copyToClipboard}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Copy size={16} className="mr-2" />
-            复制
+            <Copy size={14} className="mr-1" />
+            <span className="hidden sm:inline">复制</span>
+            <span className="sm:hidden">复制</span>
           </button>
           <button
             onClick={clearContent}
-            className="flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
-            <RotateCcw size={16} className="mr-2" />
-            清空
+            <RotateCcw size={14} className="mr-1" />
+            <span className="hidden sm:inline">清空</span>
+            <span className="sm:hidden">清空</span>
           </button>
         </div>
       </div>
 
       {/* 编辑器和预览区域 */}
-      <div className="flex h-[calc(100vh-200px)]">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-200px)]">
         {/* 编辑器区域 */}
-        <div className="w-1/2 border-r border-gray-200 relative">
+        <div className="w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-gray-200 relative h-[300px] lg:h-full">
             {/* 编辑器工具栏 */}
             <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200">
               <div className="flex items-center space-x-2">
@@ -354,13 +359,21 @@ export default function HtmlEditor({ initialValue = '' }: HtmlEditorProps) {
           </div>
 
         {/* 预览区域 */}
-        <div className="w-1/2 bg-white">
+        <div className="w-full lg:w-1/2 bg-white h-[300px] lg:h-full">
           <iframe
             ref={previewRef}
             className="w-full h-full border-none"
             title="HTML 预览"
             sandbox="allow-scripts allow-same-origin"
           />
+        </div>
+      </div>
+
+      {/* 底部状态栏 */}
+      <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
+        <div className="text-xs text-gray-500 text-center sm:text-left">
+          <span className="hidden sm:inline">字符数: {content.length} | 行数: {content.split('\n').length}</span>
+          <span className="sm:hidden">{content.length}字符 | {content.split('\n').length}行</span>
         </div>
       </div>
     </div>

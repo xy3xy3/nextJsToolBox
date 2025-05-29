@@ -463,59 +463,64 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* 工具栏 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-200 gap-4">
         <h2 className="text-lg font-semibold text-gray-900">
           Mermaid 图表编辑器
         </h2>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* 状态指示器 */}
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isLoading && (
-              <div className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-300 rounded-md">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                渲染中...
+              <div className="flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-300 rounded-md">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-1"></div>
+                <span className="hidden sm:inline">渲染中...</span>
+                <span className="sm:hidden">渲染</span>
               </div>
             )}
             {error && (
-              <div className="flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-300 rounded-md">
-                <AlertCircle size={16} className="mr-2" />
-                有错误
+              <div className="flex items-center px-2 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-300 rounded-md">
+                <AlertCircle size={12} className="mr-1" />
+                <span className="hidden sm:inline">有错误</span>
+                <span className="sm:hidden">错误</span>
               </div>
             )}
             {!isLoading && !error && code.trim() && (
-              <div className="flex items-center px-3 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-300 rounded-md">
-                <CheckCircle size={16} className="mr-2" />
-                渲染成功
+              <div className="flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-50 border border-green-300 rounded-md">
+                <CheckCircle size={12} className="mr-1" />
+                <span className="hidden sm:inline">渲染成功</span>
+                <span className="sm:hidden">成功</span>
               </div>
             )}
           </div>
 
-          <div className="h-6 w-px bg-gray-300" />
+          <div className="hidden sm:block h-6 w-px bg-gray-300" />
 
           {/* 导出按钮 */}
           <button
             onClick={exportPNG}
             disabled={!code.trim() || !!error || isLoading}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Image size={16} className="mr-2" />
-            导出 PNG
+            <Image size={14} className="mr-1" />
+            <span className="hidden sm:inline">导出 PNG</span>
+            <span className="sm:hidden">PNG</span>
           </button>
           <button
             onClick={exportSVG}
             disabled={!code.trim() || !!error || isLoading}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FileImage size={16} className="mr-2" />
-            导出 SVG
+            <FileImage size={14} className="mr-1" />
+            <span className="hidden sm:inline">导出 SVG</span>
+            <span className="sm:hidden">SVG</span>
           </button>
         </div>
       </div>
 
       {/* 编辑器主体 */}
-      <div className="flex h-[600px]">
-        {/* 左侧代码编辑器 */}
-        <div className="flex-1 flex flex-col border-r border-gray-200">
+      <div className="flex flex-col lg:flex-row h-[600px] lg:h-[600px]">
+        {/* 代码编辑器 */}
+        <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 h-[300px] lg:h-full">
           <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-700">Mermaid 代码</h3>
           </div>
@@ -531,8 +536,8 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
           </div>
         </div>
 
-        {/* 右侧预览区域 */}
-        <div className="flex-1 flex flex-col">
+        {/* 预览区域 */}
+        <div className="flex-1 flex flex-col h-[300px] lg:h-full">
           <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-700">图表预览</h3>
             <div className="flex items-center space-x-2">
@@ -598,8 +603,8 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
       </div>
 
       {/* 底部工具栏 */}
-      <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-t border-gray-200 bg-gray-50 gap-4">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
               const input = document.createElement('input')
@@ -619,10 +624,11 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
               }
               input.click()
             }}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Upload size={16} className="mr-2" />
-            导入文件
+            <Upload size={14} className="mr-1" />
+            <span className="hidden sm:inline">导入文件</span>
+            <span className="sm:hidden">导入</span>
           </button>
 
           <button
@@ -637,10 +643,11 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
               document.body.removeChild(a)
               URL.revokeObjectURL(url)
             }}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Download size={16} className="mr-2" />
-            导出代码
+            <Download size={14} className="mr-1" />
+            <span className="hidden sm:inline">导出代码</span>
+            <span className="sm:hidden">导出</span>
           </button>
 
           <button
@@ -653,10 +660,11 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
                 alert('复制失败，请手动复制')
               }
             }}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <Copy size={16} className="mr-2" />
-            复制代码
+            <Copy size={14} className="mr-1" />
+            <span className="hidden sm:inline">复制代码</span>
+            <span className="sm:hidden">复制</span>
           </button>
 
           <button
@@ -669,15 +677,17 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
                 }
               }
             }}
-            className="flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex items-center px-2 py-1 text-xs font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
-            <RotateCcw size={16} className="mr-2" />
-            清空
+            <RotateCcw size={14} className="mr-1" />
+            <span className="hidden sm:inline">清空</span>
+            <span className="sm:hidden">清空</span>
           </button>
         </div>
 
-        <div className="text-sm text-gray-500">
-          字符数: {code.length} | 行数: {code.split('\n').length}
+        <div className="text-xs text-gray-500 text-center sm:text-left">
+          <span className="hidden sm:inline">字符数: {code.length} | 行数: {code.split('\n').length}</span>
+          <span className="sm:hidden">{code.length}字符 | {code.split('\n').length}行</span>
         </div>
       </div>
 
