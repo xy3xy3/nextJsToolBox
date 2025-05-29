@@ -18,11 +18,28 @@ interface CharacterStats {
   numbers: number
   punctuation: number
   spaces: number
+  tokens?: number // 可选的token数量
 }
+
+// 支持的GPT模型列表
+const SUPPORTED_MODELS = [
+  { value: 'gpt-4o', label: 'GPT-4o', encoding: 'o200k_base' },
+  { value: 'gpt-4o-mini', label: 'GPT-4o Mini', encoding: 'o200k_base' },
+  { value: 'o1-preview', label: 'o1-preview', encoding: 'o200k_base' },
+  { value: 'o1-mini', label: 'o1-mini', encoding: 'o200k_base' },
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', encoding: 'cl100k_base' },
+  { value: 'gpt-4', label: 'GPT-4', encoding: 'cl100k_base' },
+  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', encoding: 'cl100k_base' },
+  { value: 'text-davinci-003', label: 'Text Davinci 003', encoding: 'p50k_base' },
+  { value: 'text-davinci-002', label: 'Text Davinci 002', encoding: 'p50k_base' },
+  { value: 'text-davinci-001', label: 'Text Davinci 001', encoding: 'r50k_base' },
+] as const
 
 export default function CharacterCounter({ initialValue = '' }: CharacterCounterProps) {
   const [text, setText] = useState(initialValue)
   const [isCalculating, setIsCalculating] = useState(false)
+  const [enableTokenCount, setEnableTokenCount] = useState(false)
+  const [selectedModel, setSelectedModel] = useState<string>(SUPPORTED_MODELS[0].value)
   const [stats, setStats] = useState<CharacterStats>({
     totalChars: 0,
     totalCharsNoSpaces: 0,
@@ -40,8 +57,42 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  // Token计算函数
+  const calculateTokens = useCallback(async (inputText: string, modelValue: string): Promise<number> => {
+    try {
+      // 动态导入对应的tokenizer
+      const model = SUPPORTED_MODELS.find(m => m.value === modelValue)
+      if (!model) return 0
+
+      let tokenizer
+
+      // 根据编码类型导入对应的tokenizer
+      switch (model.encoding) {
+        case 'o200k_base':
+          tokenizer = await import('gpt-tokenizer/encoding/o200k_base')
+          break
+        case 'cl100k_base':
+          tokenizer = await import('gpt-tokenizer/encoding/cl100k_base')
+          break
+        case 'p50k_base':
+          tokenizer = await import('gpt-tokenizer/encoding/p50k_base')
+          break
+        case 'r50k_base':
+          tokenizer = await import('gpt-tokenizer/encoding/r50k_base')
+          break
+        default:
+          tokenizer = await import('gpt-tokenizer/encoding/cl100k_base')
+      }
+
+      return tokenizer.encode(inputText).length
+    } catch (error) {
+      console.error('Token计算失败:', error)
+      return 0
+    }
+  }, [])
+
   // 高性能字符统计函数 - 优化大文本处理
-  const calculateStats = useCallback((inputText: string): CharacterStats => {
+  const calculateStats = useCallback(async (inputText: string, includeTokens: boolean = false, modelValue: string = 'gpt-3.5-turbo'): Promise<CharacterStats> => {
     const totalChars = inputText.length
 
     if (totalChars === 0) {
@@ -55,7 +106,8 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
         englishChars: 0,
         numbers: 0,
         punctuation: 0,
-        spaces: 0
+        spaces: 0,
+        tokens: includeTokens ? 0 : undefined
       }
     }
 
@@ -124,6 +176,12 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
       }
     }
 
+    // 计算token数量（如果启用）
+    let tokens: number | undefined = undefined
+    if (includeTokens) {
+      tokens = await calculateTokens(inputText, modelValue)
+    }
+
     return {
       totalChars,
       totalCharsNoSpaces,
@@ -134,9 +192,10 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
       englishChars,
       numbers,
       punctuation,
-      spaces
+      spaces,
+      tokens
     }
-  }, [])
+  }, [calculateTokens])
 
   // 防抖更新统计 - 根据文本长度动态调整延迟
   const updateStats = useCallback((inputText: string) => {
@@ -157,16 +216,24 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
     }
 
     // 显示计算状态
-    if (textLength > 10000) {
+    if (textLength > 10000 || enableTokenCount) {
       setIsCalculating(true)
     }
 
-    debounceTimeoutRef.current = setTimeout(() => {
-      const newStats = calculateStats(inputText)
-      setStats(newStats)
-      setIsCalculating(false)
+    debounceTimeoutRef.current = setTimeout(async () => {
+      try {
+        const newStats = await calculateStats(inputText, enableTokenCount, selectedModel)
+        setStats(newStats)
+      } catch (error) {
+        console.error('统计计算失败:', error)
+        // 如果token计算失败，至少保留基本统计
+        const basicStats = await calculateStats(inputText, false, selectedModel)
+        setStats(basicStats)
+      } finally {
+        setIsCalculating(false)
+      }
     }, delay)
-  }, [calculateStats])
+  }, [calculateStats, enableTokenCount, selectedModel])
 
   // 处理文本变化
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -179,6 +246,13 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
   useEffect(() => {
     updateStats(text)
   }, [text, updateStats])
+
+  // 当token统计设置改变时重新计算
+  useEffect(() => {
+    if (text) {
+      updateStats(text)
+    }
+  }, [enableTokenCount, selectedModel, text, updateStats])
 
   // 清理防抖定时器
   useEffect(() => {
@@ -214,10 +288,11 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
         englishChars: 0,
         numbers: 0,
         punctuation: 0,
-        spaces: 0
+        spaces: 0,
+        tokens: enableTokenCount ? 0 : undefined
       })
     }
-  }, [])
+  }, [enableTokenCount])
 
   // 导入文件
   const importFile = useCallback(() => {
@@ -254,6 +329,14 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
 
   // 导出统计报告
   const exportStats = useCallback(() => {
+    const selectedModelInfo = SUPPORTED_MODELS.find(m => m.value === selectedModel)
+    const tokenSection = stats.tokens !== undefined ? `
+
+=== Token统计 ===
+模型: ${selectedModelInfo?.label || selectedModel}
+编码: ${selectedModelInfo?.encoding || 'unknown'}
+Token数量: ${stats.tokens.toLocaleString()}` : ''
+
     const report = `文本统计报告
 生成时间: ${new Date().toLocaleString()}
 
@@ -262,7 +345,7 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
 字符数(不含空格): ${stats.totalCharsNoSpaces.toLocaleString()}
 单词数: ${stats.words.toLocaleString()}
 行数: ${stats.lines.toLocaleString()}
-段落数: ${stats.paragraphs.toLocaleString()}
+段落数: ${stats.paragraphs.toLocaleString()}${tokenSection}
 
 === 字符类型统计 ===
 中文字符: ${stats.chineseChars.toLocaleString()}
@@ -284,15 +367,45 @@ ${text}
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }, [stats, text])
+  }, [stats, text, selectedModel])
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* 工具栏 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-200 gap-4">
-        <h2 className="text-lg font-semibold text-gray-900">
-          字符统计工具
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            字符统计工具
+          </h2>
+
+          {/* Token统计控制 */}
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={enableTokenCount}
+                onChange={(e) => setEnableTokenCount(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-gray-700">启用Token统计</span>
+            </label>
+
+            {enableTokenCount && (
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {SUPPORTED_MODELS.map((model) => (
+                  <option key={model.value} value={model.value}>
+                    {model.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={importFile}
@@ -371,7 +484,7 @@ ${text}
             {/* 基本统计 */}
             <div className="mb-6">
               <h4 className="text-sm font-semibold text-gray-800 mb-3">基本统计</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className={`grid gap-4 ${stats.tokens !== undefined ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-2'}`}>
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">{stats.totalChars.toLocaleString()}</div>
                   <div className="text-xs text-blue-600">总字符数</div>
@@ -388,6 +501,18 @@ ${text}
                   <div className="text-2xl font-bold text-orange-600">{stats.lines.toLocaleString()}</div>
                   <div className="text-xs text-orange-600">行数</div>
                 </div>
+                {stats.tokens !== undefined && (
+                  <div className="bg-indigo-50 p-3 rounded-lg col-span-2 lg:col-span-1">
+                    <div className="text-2xl font-bold text-indigo-600">{stats.tokens.toLocaleString()}</div>
+                    <div className="text-xs text-indigo-600">
+                      Token数量
+                      <br />
+                      <span className="text-indigo-500">
+                        {SUPPORTED_MODELS.find(m => m.value === selectedModel)?.label}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -459,6 +584,11 @@ ${text}
       <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
         <div className="text-xs text-gray-500 text-center sm:text-left">
           💡 提示：支持大文本实时统计（可处理几十万字符），使用智能防抖技术确保流畅体验
+          {enableTokenCount && (
+            <span className="ml-2 text-blue-600">
+              • Token统计：支持多种GPT模型的精确token计算
+            </span>
+          )}
           {text.length > 50000 && (
             <span className="ml-2 text-orange-600">
               • 大文本模式：延迟计算以保持性能
