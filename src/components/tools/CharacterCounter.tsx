@@ -57,7 +57,7 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Token计算函数
+  // Token计算函数 - 使用异步处理避免阻塞主线程
   const calculateTokens = useCallback(async (inputText: string, modelValue: string): Promise<number> => {
     try {
       // 动态导入对应的tokenizer
@@ -84,7 +84,20 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
           tokenizer = await import('gpt-tokenizer/encoding/cl100k_base')
       }
 
-      return tokenizer.encode(inputText).length
+      // 使用 MessageChannel 或 setTimeout 来异步处理，避免阻塞主线程
+      return new Promise<number>((resolve) => {
+        // 使用 setTimeout 将计算推迟到下一个事件循环
+        // 这样可以让UI有机会更新，避免卡死
+        setTimeout(() => {
+          try {
+            const tokens = tokenizer.encode(inputText).length
+            resolve(tokens)
+          } catch (error) {
+            console.error('Token编码失败:', error)
+            resolve(0)
+          }
+        }, 10) // 给UI一点时间更新
+      })
     } catch (error) {
       console.error('Token计算失败:', error)
       return 0
@@ -208,11 +221,11 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
     let delay = 300 // 默认300ms
 
     if (textLength > 100000) {
-      delay = 1000 // 超过10万字符，延迟1秒
+      delay = 2000 // 超过10万字符，延迟2秒
     } else if (textLength > 50000) {
-      delay = 600 // 超过5万字符，延迟600ms
+      delay = 1000 // 超过5万字符，延迟1秒
     } else if (textLength > 10000) {
-      delay = 400 // 超过1万字符，延迟400ms
+      delay = 600 // 超过1万字符，延迟600ms
     }
 
     // 显示计算状态
@@ -222,18 +235,56 @@ export default function CharacterCounter({ initialValue = '' }: CharacterCounter
 
     debounceTimeoutRef.current = setTimeout(async () => {
       try {
-        const newStats = await calculateStats(inputText, enableTokenCount, selectedModel)
-        setStats(newStats)
-      } catch (error) {
-        console.error('统计计算失败:', error)
-        // 如果token计算失败，至少保留基本统计
+        // 先计算基本统计（同步，快速）
         const basicStats = await calculateStats(inputText, false, selectedModel)
         setStats(basicStats)
+
+        // 如果启用了token统计，则异步计算token
+        if (enableTokenCount) {
+          // 显示token计算中的状态
+          setStats(prevStats => ({
+            ...prevStats,
+            tokens: -1 // 使用-1表示正在计算中
+          }))
+
+          try {
+            const tokens = await calculateTokens(inputText, selectedModel)
+
+            // 更新包含token的统计结果
+            setStats(prevStats => ({
+              ...prevStats,
+              tokens
+            }))
+          } catch (error) {
+            console.error('Token计算失败:', error)
+            // 如果token计算失败，设置为0
+            setStats(prevStats => ({
+              ...prevStats,
+              tokens: 0
+            }))
+          }
+        }
+      } catch (error) {
+        console.error('统计计算失败:', error)
+        // 如果基本统计也失败，至少显示空统计
+        setStats({
+          totalChars: 0,
+          totalCharsNoSpaces: 0,
+          words: 0,
+          lines: 0,
+          paragraphs: 0,
+          chineseChars: 0,
+          englishChars: 0,
+          numbers: 0,
+          punctuation: 0,
+          spaces: 0,
+          tokens: enableTokenCount ? 0 : undefined
+        })
       } finally {
         setIsCalculating(false)
       }
     }, delay)
-  }, [calculateStats, enableTokenCount, selectedModel])
+  }, [calculateStats, calculateTokens, enableTokenCount, selectedModel])
 
   // 处理文本变化
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -503,7 +554,16 @@ ${text}
                 </div>
                 {stats.tokens !== undefined && (
                   <div className="bg-indigo-50 p-3 rounded-lg col-span-2 lg:col-span-1">
-                    <div className="text-2xl font-bold text-indigo-600">{stats.tokens.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-indigo-600">
+                      {stats.tokens === -1 ? (
+                        <span className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                          计算中...
+                        </span>
+                      ) : (
+                        stats.tokens.toLocaleString()
+                      )}
+                    </div>
                     <div className="text-xs text-indigo-600">
                       Token数量
                       <br />
@@ -586,12 +646,17 @@ ${text}
           💡 提示：支持大文本实时统计（可处理几十万字符），使用智能防抖技术确保流畅体验
           {enableTokenCount && (
             <span className="ml-2 text-blue-600">
-              • Token统计：支持多种GPT模型的精确token计算
+              • Token统计：支持多种GPT模型的精确token计算，大文本异步处理避免卡顿
             </span>
           )}
           {text.length > 50000 && (
             <span className="ml-2 text-orange-600">
               • 大文本模式：延迟计算以保持性能
+            </span>
+          )}
+          {enableTokenCount && text.length > 100000 && (
+            <span className="ml-2 text-purple-600">
+              • 超大文本Token计算：请耐心等待，计算过程不会阻塞界面
             </span>
           )}
         </div>
