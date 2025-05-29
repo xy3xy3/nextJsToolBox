@@ -38,6 +38,18 @@
     "ignoredBuiltDependencies": [
       "sharp",
       "unrs-resolver"
-    ]
+    ],
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@hpcc-js/wasm-graphviz-cli"
+      ]
+    },
+    "packageExtensions": {
+      "@hpcc-js/wasm": {
+        "optionalDependencies": {
+          "@hpcc-js/wasm-graphviz-cli": "*"
+        }
+      }
+    }
   }
 }
