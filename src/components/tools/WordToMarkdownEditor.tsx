@@ -298,6 +298,7 @@ export default function WordToMarkdownEditor({ initialValue = '' }: WordToMarkdo
               {Object.keys(conversionResult.images).length > 0 && (
                 <>
                   <span>•</span>
+                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
                   <Image size={14} />
                   <span>{Object.keys(conversionResult.images).length} 张图片</span>
                 </>

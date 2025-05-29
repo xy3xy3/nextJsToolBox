@@ -501,6 +501,7 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
             disabled={!code.trim() || !!error || isLoading}
             className="flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image size={14} className="mr-1" />
             <span className="hidden sm:inline">导出 PNG</span>
             <span className="sm:hidden">PNG</span>
