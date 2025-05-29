@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Download, Upload, Copy, RotateCcw, Image, FileImage, AlertCircle, CheckCircle } from 'lucide-react'
+import { Download, Upload, Copy, RotateCcw, Image, FileImage, AlertCircle, CheckCircle, ZoomIn, ZoomOut, RotateCw } from 'lucide-react'
 
 interface MermaidEditorProps {
   initialValue?: string
@@ -14,10 +14,17 @@ interface MermaidInstance {
 export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps) {
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
   const [code, setCode] = useState(initialValue)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [mermaidInstance, setMermaidInstance] = useState<MermaidInstance | null>(null)
+
+  // 缩放相关状态
+  const [zoom, setZoom] = useState(1)
+  const minZoom = 0.1
+  const maxZoom = 5
+  const zoomStep = 0.1
 
   // 防抖渲染的 ref
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -202,6 +209,38 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
       }
     }, 500)
   }, [mermaidInstance, renderMermaid])
+
+  // 缩放功能
+  const handleZoomIn = useCallback(() => {
+    setZoom(prev => Math.min(prev + zoomStep, maxZoom))
+  }, [zoomStep, maxZoom])
+
+  const handleZoomOut = useCallback(() => {
+    setZoom(prev => Math.max(prev - zoomStep, minZoom))
+  }, [zoomStep, minZoom])
+
+  const handleZoomReset = useCallback(() => {
+    setZoom(1)
+  }, [])
+
+  // 鼠标滚轮缩放
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        const delta = e.deltaY > 0 ? -zoomStep : zoomStep
+        setZoom(prev => Math.max(minZoom, Math.min(maxZoom, prev + delta)))
+      }
+    }
+
+    const previewContainer = previewContainerRef.current
+    if (previewContainer) {
+      previewContainer.addEventListener('wheel', handleWheel, { passive: false })
+      return () => {
+        previewContainer.removeEventListener('wheel', handleWheel)
+      }
+    }
+  }, [zoomStep, minZoom, maxZoom])
 
   // 导出 PNG
   const exportPNG = useCallback(async () => {
@@ -494,10 +533,46 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
 
         {/* 右侧预览区域 */}
         <div className="flex-1 flex flex-col">
-          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-700">图表预览</h3>
+            <div className="flex items-center space-x-2">
+              {/* 缩放控制 */}
+              <div className="flex items-center space-x-1 bg-white border border-gray-300 rounded-md">
+                <button
+                  onClick={handleZoomOut}
+                  disabled={zoom <= minZoom}
+                  className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="缩小 (Ctrl + 鼠标滚轮)"
+                >
+                  <ZoomOut size={14} />
+                </button>
+                <span className="px-2 py-1 text-xs font-mono text-gray-600 border-x border-gray-300 min-w-[50px] text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  onClick={handleZoomIn}
+                  disabled={zoom >= maxZoom}
+                  className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="放大 (Ctrl + 鼠标滚轮)"
+                >
+                  <ZoomIn size={14} />
+                </button>
+              </div>
+              <button
+                onClick={handleZoomReset}
+                disabled={zoom === 1}
+                className="p-1 text-gray-600 hover:bg-gray-100 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                title="重置缩放"
+              >
+                <RotateCw size={14} />
+              </button>
+            </div>
           </div>
-          <div className="flex-1 p-4 overflow-auto bg-white">
+          <div
+            ref={previewContainerRef}
+            className="flex-1 p-4 overflow-auto bg-white"
+            style={{ cursor: 'grab' }}
+          >
             {isLoading && (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
@@ -506,7 +581,18 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
                 </div>
               </div>
             )}
-            <div ref={previewRef} className="min-h-full" />
+            <div
+              ref={previewRef}
+              className="min-h-full transition-transform duration-200 ease-in-out"
+              style={{
+                transform: `scale(${zoom})`,
+                transformOrigin: 'center center',
+                minHeight: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            />
           </div>
         </div>
       </div>
@@ -741,6 +827,8 @@ export default function MermaidEditor({ initialValue = '' }: MermaidEditorProps)
 
         <div className="mt-3 text-xs text-gray-500">
           💡 提示：点击模板按钮快速开始，或在左侧编辑器中输入自定义 Mermaid 代码
+          <br />
+          🔍 缩放：使用预览区域右上角的 +/- 按钮，或按住 Ctrl 键并滚动鼠标滚轮进行缩放
         </div>
       </div>
     </div>
