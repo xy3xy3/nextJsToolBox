@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  nextjs-toolbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "30000:30000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    container_name: nextjs-toolbox
