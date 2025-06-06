@@ -7,7 +7,8 @@ import {
   Zap,
   Palette,
   Settings,
-  FileType
+  FileType,
+  Network
 } from 'lucide-react'
 
 const tools = [
@@ -41,6 +42,14 @@ const tools = [
     href: '/graphviz',
     icon: Eye,
     color: 'bg-purple-500',
+    available: true
+  },
+  {
+    name: 'PlantUML 图表',
+    description: '使用 PlantUML 语法创建序列图、类图、活动图等 UML 图表',
+    href: '/plantuml',
+    icon: Network,
+    color: 'bg-teal-500',
     available: true
   },
   {
@@ -81,7 +90,7 @@ export default function Home() {
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           基于 Next.js + React + Tailwind CSS 构建的前端开发工具集合，
-          提供 Markdown 预览、HTML 预览、图表生成等实用功能
+          提供 Markdown 预览、HTML 预览、Mermaid、Graphviz、PlantUML 图表生成等实用功能
         </p>
       </div>
 
@@ -170,7 +179,7 @@ export default function Home() {
           技术栈
         </h3>
         <div className="flex flex-wrap justify-center gap-4">
-          {['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Vditor', 'Lucide Icons'].map((tech) => (
+          {['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Vditor', 'Mermaid.js', 'Graphviz', 'PlantUML', 'Lucide Icons'].map((tech) => (
             <span
               key={tech}
               className="px-3 py-1 bg-white text-gray-700 text-sm rounded-full border border-gray-200"

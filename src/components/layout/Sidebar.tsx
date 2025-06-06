@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   FileType,
-  Calculator
+  Calculator,
+  Network
 } from 'lucide-react'
 import { useState } from 'react'
 import { useSidebar } from './MainLayout'
@@ -50,6 +51,13 @@ const tools = [
     href: '/graphviz',
     icon: Eye,
     description: 'Graphviz 图表编辑',
+    disabled: false
+  },
+  {
+    name: 'PlantUML 图表',
+    href: '/plantuml',
+    icon: Network,
+    description: 'PlantUML UML图表编辑',
     disabled: false
   },
   {

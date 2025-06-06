@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "前端工具箱",
-  description: "基于 Next.js 的前端开发工具集合，包含 Markdown 预览、HTML 预览、Mermaid 图表等实用工具",
+  description: "基于 Next.js 的前端开发工具集合，包含 Markdown 预览、HTML 预览、Mermaid、Graphviz、PlantUML 图表等实用工具",
 };
 
 export default function RootLayout({

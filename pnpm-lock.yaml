@@ -4,6 +4,8 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+packageExtensionsChecksum: sha256-CcvW/PraZfWWqx8/y/DgC9w2z/vc62rMwlI7pRBlCvQ=
+
 importers:
 
   .:
@@ -32,6 +34,9 @@ importers:
       next:
         specifier: 15.1.8
         version: 15.1.8(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      plantuml-encoder:
+        specifier: ^1.4.0
+        version: 1.4.0
       react:
         specifier: ^19.0.0
         version: 19.1.0
@@ -152,6 +157,13 @@ packages:
   '@eslint/plugin-kit@0.3.1':
     resolution: {integrity: sha512-0J+zgWxHN+xXONWIyPWKFMgVuJoZuGiIFu8yxk7RJjxkzpGmyja5wRFqZIVtjDVOQpV+Rw0iOAjYPE2eQyjr0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@hpcc-js/wasm-graphviz-cli@1.2.6':
+    resolution: {integrity: sha512-hgSDcxiOttuuxHXvea5T+mEZ65gX2ASpAuYgXSOXgZ3UzyaqGfFUTygvw7+FUxmdXPOeMXKeiu4XODjtxkht6w==}
+    hasBin: true
+
+  '@hpcc-js/wasm-graphviz@1.7.0':
+    resolution: {integrity: sha512-/1XEmubfDz1UolKiVh6H4BrGX0DZwR39Y2h76LdqR17FZ3gCJoUs4jV7kUywedXerbwx1szhU3dBsNcvkEmjiQ==}
 
   '@hpcc-js/wasm@2.22.4':
     resolution: {integrity: sha512-58JkRkxZffiBAbZhc7z+9iaaAOmn1cyxLL3rRwsUvco/I0Wwb7uVAlHM9HiU6XASe2k11jrIjCFff1t9QKjlqg==}
@@ -1947,6 +1959,9 @@ packages:
   pkg-types@2.1.0:
     resolution: {integrity: sha512-wmJwA+8ihJixSoHKxZJRBQG1oY8Yr9pGLzRmSsNms0iNWyHHAlZCa7mmKiFR10YPZuz/2k169JiS/inOjBCZ2A==}
 
+  plantuml-encoder@1.4.0:
+    resolution: {integrity: sha512-sxMwpDw/ySY1WB2CE3+IdMuEcWibJ72DDOsXLkSmEaSzwEUaYBT6DWgOfBiHGCux4q433X6+OEFWjlVqp7gL6g==}
+
   points-on-curve@0.2.0:
     resolution: {integrity: sha512-0mYKnYYe9ZcqMCWhUjItv/oHjvgEsfKvnUTg8sAtnHr3GVy7rGkXCb6d5cSyqrWqL4k81b9CPg3urd+T7aop3A==}
 
@@ -2538,9 +2553,20 @@ snapshots:
       '@eslint/core': 0.14.0
       levn: 0.4.1
 
+  '@hpcc-js/wasm-graphviz-cli@1.2.6':
+    dependencies:
+      '@hpcc-js/wasm-graphviz': 1.7.0
+      yargs: 17.7.2
+    optional: true
+
+  '@hpcc-js/wasm-graphviz@1.7.0':
+    optional: true
+
   '@hpcc-js/wasm@2.22.4':
     dependencies:
       yargs: 17.7.2
+    optionalDependencies:
+      '@hpcc-js/wasm-graphviz-cli': 1.2.6
 
   '@humanfs/core@0.19.1': {}
 
@@ -4533,6 +4559,8 @@ snapshots:
       confbox: 0.2.2
       exsolve: 1.0.5
       pathe: 2.0.3
+
+  plantuml-encoder@1.4.0: {}
 
   points-on-curve@0.2.0: {}
 
